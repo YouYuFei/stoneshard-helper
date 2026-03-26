@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/">
+        <file>update.bat</file>
+        <file>icon.png</file>
+        <file>bilibili.ico</file>
+        <file>github.png</file>
+        <file>support.png</file>
+        <file>o_inv_bag_belt01.json</file>
+        <file>o_inv_tinker.json</file>
+        <file>o_inv_hilda_trinket.json</file>
+        <file>Hermit Ring.json</file>
+        <file>Orient Shield.json</file>
+        <file>portrait/100px-Hilda.png</file>
+        <file>portrait/100px-Arna.png</file>
+        <file>portrait/100px-Velmir.png</file>
+        <file>portrait/100px-Jorgrim.png</file>
+        <file>portrait/100px-Dirwin.png</file>
+        <file>portrait/100px-Jonna.png</file>
+        <file>portrait/100px-Leosthenes.png</file>
+        <file>portrait/100px-Mahir.png</file>
+    </qresource>
+</RCC>
