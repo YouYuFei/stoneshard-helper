@@ -13,7 +13,7 @@ Updater::Updater(QObject *parent): QObject(parent)
 
 void Updater::checkUpdate()
 {
-    QUrl versionUrl("http://yyf.luxe/stoneshard-helper/version");
+    QUrl versionUrl("https://yyf.luxe/stoneshard-helper/version");
     m_reply = m_networkManager->get(QNetworkRequest(versionUrl));
     connect(m_reply, &QNetworkReply::finished, this, &Updater::onUpdateCheckFinished);
 }
@@ -50,7 +50,7 @@ void Updater::onUpdateCheckFinished()
         qDebug()<<"开发环境，跳过后续更新步骤";
         return;
     }
-    QUrl versionUrl("http://yyf.luxe/stoneshard-helper/update/stoneshard-helper.exe");
+    QUrl versionUrl("https://yyf.luxe/stoneshard-helper/update/stoneshard-helper.exe");
     m_reply = m_networkManager->get(QNetworkRequest(versionUrl));
     connect(m_reply, &QNetworkReply::finished, this, &Updater::downloadFile);
 }

@@ -38,7 +38,7 @@ void MainWindow::init()
     });
     act->setIcon(QIcon(":/github.png"));
     act = menuBar()->addAction("",[]{
-        QDesktopServices::openUrl(QUrl("http://yyf.luxe/stoneshard-helper/support"));
+        QDesktopServices::openUrl(QUrl("https://yyf.luxe/stoneshard-helper/support"));
     });
     act->setIcon(QIcon(":/support.png"));
     QList<InitialSupply> list = Common::getInitialSupplies();
