@@ -25,12 +25,12 @@ struct InitialSupply{
     int point;
 };
 
-class StoneShardCommon : public QObject
+class Common : public QObject
 {
     Q_OBJECT
 
 public:
-    StoneShardCommon(){}
+    Common(){}
     static QList<CharacterData> getNewCharacterList();
     static QList<InitialSupply> getInitialSupplies();
     static void setInitialSupplies(const CharacterData &characterData, QList<bool> list);

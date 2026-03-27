@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include "stoneshardcommon.h"
+#include "common.h"
 #include <QStandardItemModel>
 #include <QDesktopServices>
 
@@ -28,16 +28,20 @@ void MainWindow::init()
     ui->statusbar->setStyleSheet("QStatusBar{ color: red; font-weight: bold;}");
     ui->label->setText("剩余点数:"+QString::number(m_pointMax));
     on_pushButton_clicked();
-    menuBar()->addAction(QIcon(":/bilibili.ico"),"",[]{
+    QAction *act;
+    act = menuBar()->addAction("",[]{
         QDesktopServices::openUrl(QUrl("https://space.bilibili.com/107071365"));
     });
-    menuBar()->addAction(QIcon(":/github.png"),"",[]{
+    act->setIcon(QIcon(":/bilibili.png"));
+    act = menuBar()->addAction("",[]{
         QDesktopServices::openUrl(QUrl("https://github.com/YouYuFei/stoneshard-helper"));
     });
-    menuBar()->addAction(QIcon(":/support.png"),"",[]{
+    act->setIcon(QIcon(":/github.png"));
+    act = menuBar()->addAction("",[]{
         QDesktopServices::openUrl(QUrl("http://yyf.luxe/stoneshard-helper/support"));
     });
-    QList<InitialSupply> list = StoneShardCommon::getInitialSupplies();
+    act->setIcon(QIcon(":/support.png"));
+    QList<InitialSupply> list = Common::getInitialSupplies();
     QStringList headers = {"名称", "描述", "点数"};
     ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -60,7 +64,8 @@ void MainWindow::init()
 void MainWindow::on_pushButton_clicked()
 {
     ui->comboBox->clear();
-    QList<CharacterData> list = StoneShardCommon::getNewCharacterList();
+    bool hasNewSave = false;
+    QList<CharacterData> list = Common::getNewCharacterList();
     QStandardItemModel *model = new QStandardItemModel(ui->comboBox);
     for (CharacterData data : list) {
         QStandardItem *item = new QStandardItem();
@@ -70,11 +75,16 @@ void MainWindow::on_pushButton_clicked()
         item->setData(itemData);
         if (data.statsTimeLevel > 1) {
             item->setEnabled(false);
-            item->setToolTip("只能配置新存档");
+            item->setToolTip("只对新存档开放");
+        } else {
+            hasNewSave = true;
         }
         model->appendRow(item);
     }
     ui->comboBox->setModel(model);
+    if (!hasNewSave) {
+        ui->statusbar->showMessage("只对新存档开放，请在游戏中创建角色后，点击刷新按钮");
+    }
 }
 
 void MainWindow::on_pushButton_2_clicked()
@@ -86,7 +96,7 @@ void MainWindow::on_pushButton_2_clicked()
     }
     QModelIndex modelIndex = ui->comboBox->model()->index(ui->comboBox->currentIndex(),0);
     CharacterData data = ui->comboBox->model()->itemData(modelIndex).value(Qt::UserRole + 1).value<CharacterData>();
-    StoneShardCommon::setInitialSupplies(data,list);
+    Common::setInitialSupplies(data,list);
     on_pushButton_clicked();
 }
 

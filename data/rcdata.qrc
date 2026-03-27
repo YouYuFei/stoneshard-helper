@@ -2,7 +2,7 @@
     <qresource prefix="/">
         <file>update.bat</file>
         <file>icon.png</file>
-        <file>bilibili.ico</file>
+        <file>bilibili.png</file>
         <file>github.png</file>
         <file>support.png</file>
         <file>o_inv_bag_belt01.json</file>

@@ -1,20 +1,20 @@
-#include "stoneshardcommon.h"
+#include "common.h"
 #include <QDir>
 #include <QCryptographicHash>
 #include <QStandardPaths>
 
-QString StoneShardCommon::m_homeDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/StoneShard/characters_v1/";
-QMap<QString, QString> StoneShardCommon::m_nameKeyMap = {{"Hilda","希尔达"},{"Arna","阿娜"},{"Velmir","韦尔米尔"},{"Jorgrim","约戈里姆"},{"Dirwin","德温"},{"Jonna","约娜"},{"Leosthenes","琉斯典纳斯"},{"Mahir","玛息尔"}};
-QList<InitialSupply> StoneShardCommon::m_initialSupplies = {InitialSupply("家境殷实","豪华钱包+2500金币",1),
+QString Common::m_homeDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/StoneShard/characters_v1/";
+QMap<QString, QString> Common::m_nameKeyMap = {{"Hilda","希尔达"},{"Arna","阿娜"},{"Velmir","韦尔米尔"},{"Jorgrim","约戈里姆"},{"Dirwin","德温"},{"Jonna","约娜"},{"Leosthenes","琉斯典纳斯"},{"Mahir","玛息尔"}};
+QList<InitialSupply> Common::m_initialSupplies = {InitialSupply("家境殷实","豪华钱包+2500金币",1),
                                                             InitialSupply("盗圣遗物","高耐久的撬棍",1),
-                                                            InitialSupply("资历丰富","技能点+3",3),
+                                                            InitialSupply("阅历丰富","技能点+3",3),
                                                             InitialSupply("天赋异禀","属性点+3",3),
-                                                            InitialSupply("矮人圣器","希尔达的骨器",2),
-                                                            InitialSupply("昆仑灵宝","附带元素攻击的盾牌",4),
+                                                            InitialSupply("矮人馈赠","希尔达的骨器",2),
+                                                            InitialSupply("昆仑灵宝","附带元素攻击的东方盾牌",4),
                                                             InitialSupply("隐士传承","强化版隐士之戒",4)
                                                            };
 
-void StoneShardCommon::setInitialSupplies(const CharacterData &characterData, QList<bool> list)
+void Common::setInitialSupplies(const CharacterData &characterData, QList<bool> list)
 {
     if (characterData.fileName.isEmpty() || characterData.data.isEmpty() || list.length() != m_initialSupplies.length()) {
         qDebug()<<"参数不合规" << characterData.fileName << characterData.data.size();
@@ -64,12 +64,12 @@ void StoneShardCommon::setInitialSupplies(const CharacterData &characterData, QL
     encodeFile(newJson, characterData.fileName);
 }
 
-QList<InitialSupply> StoneShardCommon::getInitialSupplies()
+QList<InitialSupply> Common::getInitialSupplies()
 {
     return m_initialSupplies;
 }
 
-QList<CharacterData> StoneShardCommon::getNewCharacterList()
+QList<CharacterData> Common::getNewCharacterList()
 {
     QList<CharacterData> result;
     QDir dir(m_homeDir);
@@ -93,7 +93,7 @@ QList<CharacterData> StoneShardCommon::getNewCharacterList()
     return result;
 }
 
-CharacterData StoneShardCommon::getNewCharacter(const QString &fileName, const QString &characterIndex)
+CharacterData Common::getNewCharacter(const QString &fileName, const QString &characterIndex)
 {
     CharacterData result;
     result.fileName = fileName;
@@ -116,7 +116,7 @@ CharacterData StoneShardCommon::getNewCharacter(const QString &fileName, const Q
     return result;
 }
 
-QByteArray StoneShardCommon::calcMd5(const QString& jsonString, const QString& saveFilePath) {
+QByteArray Common::calcMd5(const QString& jsonString, const QString& saveFilePath) {
     QByteArray result;
     QString normalizedPath = saveFilePath;
     QStringList pathParts = normalizedPath.split('/');
@@ -133,7 +133,7 @@ QByteArray StoneShardCommon::calcMd5(const QString& jsonString, const QString& s
     return result;
 }
 
-QByteArray StoneShardCommon::fastRead(const QString &fileName)
+QByteArray Common::fastRead(const QString &fileName)
 {
     QFile file(fileName);
     file.open(QIODevice::ReadOnly);
@@ -142,7 +142,7 @@ QByteArray StoneShardCommon::fastRead(const QString &fileName)
     return data;
 }
 
-void StoneShardCommon::fastWrite(const QString &fileName, QByteArray data)
+void Common::fastWrite(const QString &fileName, QByteArray data)
 {
     QFile file(fileName);
     file.open(QIODevice::WriteOnly);
@@ -150,7 +150,7 @@ void StoneShardCommon::fastWrite(const QString &fileName, QByteArray data)
     file.close();
 }
 
-QByteArray StoneShardCommon::decodeFile(const QString &fileName)
+QByteArray Common::decodeFile(const QString &fileName)
 {
     QByteArray origData = fastRead(fileName);
     QByteArray prefixed(4, 0);
@@ -161,7 +161,7 @@ QByteArray StoneShardCommon::decodeFile(const QString &fileName)
     return jsonData;
 }
 
-void StoneShardCommon::encodeFile(const QByteArray &jsonStr, const QString &fileName)
+void Common::encodeFile(const QByteArray &jsonStr, const QString &fileName)
 {
     QByteArray fullData = jsonStr + calcMd5(jsonStr,fileName);
     QByteArray compressed = qCompress(fullData);

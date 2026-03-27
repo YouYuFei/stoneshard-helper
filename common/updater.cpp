@@ -1,13 +1,12 @@
 #include "updater.h"
-#include "stoneshardcommon.h"
+#include "common.h"
 #include <QNetworkReply>
 #include <QCoreApplication>
 #include <QProcess>
+#include <QDir>
 
 Updater::Updater(QObject *parent): QObject(parent)
 {
-    // QProcess::startDetached("cmd.exe", {"/c", "update.bat"});
-    // return;
     m_networkManager = new QNetworkAccessManager(this);
     checkUpdate();
 }
@@ -34,12 +33,23 @@ void Updater::onUpdateCheckFinished()
         qDebug()<<"version json error :"<<versionJson;
         return;
     }
-    QByteArray exe = StoneShardCommon::fastRead(QCoreApplication::applicationFilePath());
+    QByteArray exe = Common::fastRead(QCoreApplication::applicationFilePath());
     QString md5 = QCryptographicHash::hash(exe, QCryptographicHash::Md5).toHex();
     if (md5 == m_md5) {
         return;
     }
     emit updateMsg("检测到新版本，自动更新中，鼠标悬停此处查看更新内容", notes);
+    qDebug()<<"检查更新完成" << md5 << m_md5;
+    QString path = QCoreApplication::applicationDirPath();
+    while (path.endsWith("/")) {
+        path.chop(1);
+    }
+    QStringList parts = path.split("/");
+    QString lastDir = parts.last().toLower();
+    if (lastDir.contains("qt")) {
+        qDebug()<<"开发环境，跳过后续更新步骤";
+        return;
+    }
     QUrl versionUrl("http://yyf.luxe/stoneshard-helper/update/stoneshard-helper.exe");
     m_reply = m_networkManager->get(QNetworkRequest(versionUrl));
     connect(m_reply, &QNetworkReply::finished, this, &Updater::downloadFile);
@@ -56,8 +66,9 @@ void Updater::downloadFile()
     }
     QString tmpName = QCoreApplication::applicationFilePath() + ".tmp";
     QFile::remove(tmpName);
-    StoneShardCommon::fastWrite(tmpName, fileData);
+    Common::fastWrite(tmpName, fileData);
     QString batName = "update.bat";
+    QFile::remove(batName);
     QFile::copy(":/update.bat",batName);
     QProcess::startDetached("cmd.exe", {"/c", batName});
     emit updateMsg("更新完成，重启后生效", "");

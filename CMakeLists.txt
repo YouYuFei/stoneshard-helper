@@ -18,17 +18,24 @@ set(PROJECT_SOURCES
         ui/mainwindow.cpp
         ui/mainwindow.h
         ui/mainwindow.ui
-        common/stoneshardcommon.h
-        common/stoneshardcommon.cpp
+        common/common.h
+        common/common.cpp
         common/updater.h
         common/updater.cpp
         data/rcdata.qrc
 )
 
+# 只在Windows平台包含app.rc资源文件
+if(WIN32 AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/data/app.rc)
+    set(WINDOWS_RESOURCES data/app.rc)
+    message(STATUS "Windows资源文件已包含: app.rc")
+endif()
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(${PROJECT_NAME}
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        ${WINDOWS_RESOURCES}  # 只在Windows时包含
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET stoneshardtool APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -44,6 +51,7 @@ else()
     else()
         add_executable(${PROJECT_NAME}
             ${PROJECT_SOURCES}
+            ${WINDOWS_RESOURCES}  # 只在Windows时包含
         )
     endif()
 endif()
