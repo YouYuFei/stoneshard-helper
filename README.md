@@ -2,15 +2,15 @@
 
 
 
-游戏链接：<https://store.steampowered.com/app/625960/>
+游戏链接：[https://store.steampowered.com/app/625960/](https://store.steampowered.com/app/625960/)
 
 
 
-存档加密方法参考自：<https://github.com/denbkh/stoneshard-save-editor>
+存档加密方法参考自：[https://github.com/denbkh/stoneshard-save-editor](https://github.com/denbkh/stoneshard-save-editor)
 
 
 
-作者主页：<https://space.bilibili.com/107071365>
+作者主页：[https://space.bilibili.com/107071365](https://space.bilibili.com/107071365)
 
 
 
@@ -31,6 +31,8 @@
 | :--- | :----------- | :----------------------- |
 
 | 1    | 盗圣遗物     | 高耐久的撬棍             |
+
+| 1    | 圣火不灭     | 永不熄灭的提灯             |
 
 | 3    | 阅历丰富     | 技能点+3                 |
 

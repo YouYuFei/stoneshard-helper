@@ -5,11 +5,12 @@
         <file>bilibili.png</file>
         <file>github.png</file>
         <file>support.png</file>
-        <file>o_inv_bag_belt01.json</file>
-        <file>o_inv_tinker.json</file>
-        <file>o_inv_hilda_trinket.json</file>
-        <file>Hermit Ring.json</file>
-        <file>Orient Shield.json</file>
+        <file>json/o_inv_bag_belt01.json</file>
+        <file>json/o_inv_tinker.json</file>
+        <file>json/o_inv_hilda_trinket.json</file>
+        <file>json/o_inv_lantern.json</file>
+        <file>json/Hermit Ring.json</file>
+        <file>json/Orient Shield.json</file>
         <file>portrait/100px-Hilda.png</file>
         <file>portrait/100px-Arna.png</file>
         <file>portrait/100px-Velmir.png</file>

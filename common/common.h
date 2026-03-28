@@ -14,6 +14,7 @@ struct CharacterData{
     QString nameKey;
     QString fileName;
     QByteArray data;
+    QJsonArray inventory;
     QString index;
     double statsTimeLevel;
 };
@@ -34,15 +35,14 @@ public:
     static QList<CharacterData> getNewCharacterList();
     static QList<InitialSupply> getInitialSupplies();
     static void setInitialSupplies(const CharacterData &characterData, QList<bool> list);
-
     static QByteArray fastRead(const QString &fileName);
     static void fastWrite(const QString &fileName, QByteArray data);
+    static CharacterData getCharacter(const QString &fileName);
 
 private:
     static QByteArray decodeFile(const QString &fileName);
     static void encodeFile(const QByteArray &jsonStr, const QString &fileName);
     static QByteArray calcMd5(const QString& jsonString, const QString& saveFilePath);
-    static CharacterData getNewCharacter(const QString &fileName, const QString &characterIndex);
     static QString m_homeDir;
     static QMap<QString, QString> m_nameKeyMap;
     static QList<InitialSupply> m_initialSupplies;

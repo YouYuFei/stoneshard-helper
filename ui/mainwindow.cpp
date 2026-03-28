@@ -10,6 +10,17 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     init();
+#if 0
+    //仅调试用
+    CharacterData character = Common::getCharacter("character_2/save_1/data.sav");
+    for (int i=0; i<character.inventory.size(); i++) {
+        QJsonArray item = character.inventory.at(i).toArray();
+        QJsonObject itemInfo = item.at(1).toObject();
+        if (itemInfo.keys().contains("is_fire")) {
+            qDebug()<< item;
+        }
+    }
+#endif
 }
 
 MainWindow::~MainWindow()
@@ -51,8 +62,9 @@ void MainWindow::init()
     ui->tableWidget->setColumnCount(3);
     ui->tableWidget->setRowCount(list.size());
     ui->tableWidget->setHorizontalHeaderLabels(headers);
-    ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->tableWidget->setStyleSheet("QTableWidget::item { padding: 10px 15px 10px 15px; }");
     for (int i=0; i<list.size(); i++ ) {
         InitialSupply sup = list.at(i);
         ui->tableWidget->setItem(i, 0, new QTableWidgetItem(sup.nameKey));

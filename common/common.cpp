@@ -7,6 +7,7 @@ QString Common::m_homeDir = QStandardPaths::writableLocation(QStandardPaths::App
 QMap<QString, QString> Common::m_nameKeyMap = {{"Hilda","希尔达"},{"Arna","阿娜"},{"Velmir","韦尔米尔"},{"Jorgrim","约戈里姆"},{"Dirwin","德温"},{"Jonna","约娜"},{"Leosthenes","琉斯典纳斯"},{"Mahir","玛息尔"}};
 QList<InitialSupply> Common::m_initialSupplies = {InitialSupply("家境殷实","豪华钱包+2500金币",1),
                                                             InitialSupply("盗圣遗物","高耐久的撬棍",1),
+                                                            InitialSupply("圣火不灭","永不熄灭的提灯（耐久条过长，建议常驻背包右下角）",1),
                                                             InitialSupply("阅历丰富","技能点+3",3),
                                                             InitialSupply("天赋异禀","属性点+3",3),
                                                             InitialSupply("矮人馈赠","希尔达的骨器",2),
@@ -25,34 +26,40 @@ void Common::setInitialSupplies(const CharacterData &characterData, QList<bool> 
     QJsonObject root = doc.object();
     QJsonObject character = root.value("characterDataMap").toObject();
     QJsonArray inventory = root.value("inventoryDataList").toArray();
-    if (list.at(0)) {
-        QByteArray origData = fastRead(":/o_inv_bag_belt01.json");
+    int index = 0;
+    if (list.at(index++)) {
+        QByteArray origData = fastRead(":/json/o_inv_bag_belt01.json");
         QJsonArray array = QJsonDocument::fromJson(origData).array();
         inventory.append(array);
     }
-    if (list.at(1)) {
-        QByteArray origData = fastRead(":/o_inv_tinker.json");
+    if (list.at(index++)) {
+        QByteArray origData = fastRead(":/json/o_inv_tinker.json");
         QJsonArray array = QJsonDocument::fromJson(origData).array();
         inventory.append(array);
     }
-    if (list.at(2)) {
+    if (list.at(index++)) {
+        QByteArray origData = fastRead(":/json/o_inv_lantern.json");
+        QJsonArray array = QJsonDocument::fromJson(origData).array();
+        inventory.append(array);
+    }
+    if (list.at(index++)) {
         character["SP"] = 5;
     }
-    if (list.at(3)) {
+    if (list.at(index++)) {
         character["AP"] = 3;
     }
-    if (list.at(4)) {
-        QByteArray origData = fastRead(":/o_inv_hilda_trinket.json");
+    if (list.at(index++)) {
+        QByteArray origData = fastRead(":/json/o_inv_hilda_trinket.json");
         QJsonArray array = QJsonDocument::fromJson(origData).array();
         inventory.append(array);
     }
-    if (list.at(5)) {
-        QByteArray origData = fastRead(":/Orient Shield.json");
+    if (list.at(index++)) {
+        QByteArray origData = fastRead(":/json/Orient Shield.json");
         QJsonArray array = QJsonDocument::fromJson(origData).array();
         inventory.append(array);
     }
-    if (list.at(6)) {
-        QByteArray origData = fastRead(":/Hermit Ring.json");
+    if (list.at(index++)) {
+        QByteArray origData = fastRead(":/json/Hermit Ring.json");
         QJsonArray array = QJsonDocument::fromJson(origData).array();
         inventory.append(array);
     }
@@ -86,18 +93,23 @@ QList<CharacterData> Common::getNewCharacterList()
             if (strCharacter != "autosave_1"|| !QFile::exists(savePath)) {
                 continue;
             }
-            CharacterData data = getNewCharacter(savePath, str);
+            CharacterData data = getCharacter(savePath);
             result.append(data);
         }
     }
     return result;
 }
 
-CharacterData Common::getNewCharacter(const QString &fileName, const QString &characterIndex)
+CharacterData Common::getCharacter(const QString &fileName)
 {
+    QString filePath = fileName;
+    QStringList pathParts = filePath.split('/');
+    if (pathParts.length() < 4) {
+        filePath = m_homeDir + filePath;
+    }
     CharacterData result;
-    result.fileName = fileName;
-    QByteArray jsonStr = decodeFile(fileName);
+    result.fileName = filePath;
+    QByteArray jsonStr = decodeFile(filePath);
     result.data = jsonStr;
     QJsonDocument doc = QJsonDocument::fromJson(jsonStr);
     QJsonObject root = doc.object();
@@ -105,10 +117,12 @@ CharacterData Common::getNewCharacter(const QString &fileName, const QString &ch
     result.statsTimeLevel = character.value("statsTimeLevel").toDouble();
     result.nameKey = character.value("nameKey").toString();
     result.icon = ":/portrait/100px-" + result.nameKey + ".png";
+    result.inventory = root.value("inventoryDataList").toArray();
     QString tmp = m_nameKeyMap.value(result.nameKey);
     if (!tmp.isEmpty()) {
         result.nameKey = tmp;
     }
+    QString characterIndex = pathParts.at(pathParts.length() - 3);
     result.index = characterIndex.split("_").last();
     if (root.value("yyf").toBool(false)) {
         result.statsTimeLevel += 1;
