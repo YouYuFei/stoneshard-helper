@@ -9,18 +9,25 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    init();
-#if 0
+#ifndef QT_NO_DEBUG
+    m_pointMax += 90;
     //仅调试用
-    CharacterData character = Common::getCharacter("character_2/save_1/data.sav");
+    CharacterData character = Common::getCharacter("character_1/save_1/data.sav");
     for (int i=0; i<character.inventory.size(); i++) {
         QJsonArray item = character.inventory.at(i).toArray();
         QJsonObject itemInfo = item.at(1).toObject();
         if (itemInfo.keys().contains("is_fire")) {
-            qDebug()<< item;
+            // qDebug()<< item;
         }
     }
+    for (QString key : character.character.keys()) {
+        if (key != "buffs") {
+            continue;
+        }
+        // qDebug()<< key << character.character.value(key);
+    }
 #endif
+    init();
 }
 
 MainWindow::~MainWindow()
@@ -62,12 +69,16 @@ void MainWindow::init()
     ui->tableWidget->setColumnCount(3);
     ui->tableWidget->setRowCount(list.size());
     ui->tableWidget->setHorizontalHeaderLabels(headers);
-    ui->tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    ui->tableWidget->setStyleSheet("QTableWidget::item { padding: 10px 15px 10px 15px; }");
+    ui->tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     for (int i=0; i<list.size(); i++ ) {
         InitialSupply sup = list.at(i);
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(sup.nameKey));
+        QTableWidgetItem *item = new QTableWidgetItem(sup.nameKey);
+        QVariant itemData = QVariant::fromValue(sup);
+        item->setData(Qt::UserRole + 1, itemData);
+        ui->tableWidget->setItem(i, 0, item);
         ui->tableWidget->setItem(i, 1, new QTableWidgetItem(sup.description));
         ui->tableWidget->setItem(i, 2, new QTableWidgetItem(QString::number(sup.point)));
     }
@@ -101,10 +112,12 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::on_pushButton_2_clicked()
 {
-    QList<bool> list;
+    QList<InitialSupply> list;
     for (int i=0; i<ui->tableWidget->rowCount(); i++) {
         QTableWidgetItem* item = ui->tableWidget->item(i,0);
-        list.append(item->isSelected());
+        InitialSupply sup = item->data(Qt::UserRole + 1).value<InitialSupply>();
+        sup.isSelected = item->isSelected();
+        list.append(sup);
     }
     QModelIndex modelIndex = ui->comboBox->model()->index(ui->comboBox->currentIndex(),0);
     CharacterData data = ui->comboBox->model()->itemData(modelIndex).value(Qt::UserRole + 1).value<CharacterData>();
@@ -118,7 +131,7 @@ void MainWindow::on_tableWidget_itemSelectionChanged()
     for (int i=0; i<ui->tableWidget->rowCount(); i++) {
         QTableWidgetItem* item = ui->tableWidget->item(i,0);
         if(item->isSelected()) {
-            usePoint += ui->tableWidget->item(i,2)->text().toInt();
+            usePoint -= ui->tableWidget->item(i,2)->text().toInt();
         }
     }
     int remaining = m_pointMax-usePoint;

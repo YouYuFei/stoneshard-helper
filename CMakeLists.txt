@@ -26,7 +26,7 @@ set(PROJECT_SOURCES
 )
 
 # 只在Windows平台包含app.rc资源文件
-if(WIN32 AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/data/app.rc)
+if(WIN32 AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(WINDOWS_RESOURCES data/app.rc)
     message(STATUS "Windows资源文件已包含: app.rc")
 endif()
