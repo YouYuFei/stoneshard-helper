@@ -30,7 +30,14 @@ QList<InitialSupply> Common::m_initialSupplies = {
     InitialSupply("腐蚀加持","腐蚀伤害+1",-1,"Caustic_Damage",1),
     InitialSupply("毒素加持","中毒伤害+1",-1,"Poison_Damage",1),
     InitialSupply("秘术加持","秘术伤害+1",-1,"Arcane_Damage",1),
-    InitialSupply("不眠不休","永久获得精神焕发BUFF",-1,"o_b_fresh",0),
+    InitialSupply("狂猎","希尔达的初始天赋",-3,"o_perk_wild_hunt",InitialSupply::addPerks,"希尔达"),
+    InitialSupply("无畏誓言","阿娜的初始天赋",-3,"o_perk_vow_feat",InitialSupply::addPerks,"阿娜"),
+    InitialSupply("复仇心切","韦尔米尔的初始天赋",-3,"o_perk_suum_cuique",InitialSupply::addPerks,"韦尔米尔"),
+    InitialSupply("血与荣耀","约戈里姆的初始天赋",-3,"o_perk_berserk",InitialSupply::addPerks,"约戈里姆"),
+    InitialSupply("猎场老手","德温的初始天赋",-3,"o_perk_trained_eye",InitialSupply::addPerks,"德温"),
+    InitialSupply("魔法学养","约娜的初始天赋",-3,"o_perk_magical_erudition",InitialSupply::addPerks,"约娜"),
+    InitialSupply("力量与魔法","琉斯典纳斯的初始天赋",-3,"o_perk_might_and_magic",InitialSupply::addPerks,"琉斯典纳斯"),
+    InitialSupply("终生游历","玛息尔的初始天赋",-3,"o_perk_lifelong_journey",InitialSupply::addPerks,"玛息尔"),
     InitialSupply("阅历丰富1","技能点+1",-1,"SP",1,InitialSupply::addAttribute),
     InitialSupply("阅历丰富2","技能点+2",-2,"SP",2,InitialSupply::addAttribute),
     InitialSupply("阅历丰富3","技能点+3",-3,"SP",3,InitialSupply::addAttribute),
@@ -40,7 +47,7 @@ QList<InitialSupply> Common::m_initialSupplies = {
     InitialSupply("家境殷实","豪华钱包+2500金币",-1,":/json/o_inv_bag_belt01.json"),
     InitialSupply("盗圣遗物","高耐久的撬棍",-1,":/json/o_inv_tinker.json"),
     InitialSupply("圣火不灭","永不熄灭的提灯（耐久条过长，建议常驻背包右下角）",-1,":/json/o_inv_lantern.json"),
-    InitialSupply("矮人馈赠","希尔达的骨器",-1,":/json/o_inv_hilda_trinket.json")
+    InitialSupply("隐士传承","强化版隐士之戒",-3,":/json/Hermit Ring.json")
 };
 
 void Common::setInitialSupplies(const CharacterData &characterData, QList<InitialSupply> list)
@@ -49,9 +56,7 @@ void Common::setInitialSupplies(const CharacterData &characterData, QList<Initia
         qDebug()<<"参数不合规" << characterData.fileName << characterData.origData.size();
         return;
     }
-    QByteArray origJson = characterData.origData;
-    QJsonDocument doc = QJsonDocument::fromJson(origJson);
-    QJsonObject root = doc.object();
+    QJsonObject root = characterData.origData;
     QJsonObject character = root.value("characterDataMap").toObject();
     QJsonArray inventory = root.value("inventoryDataList").toArray();
     for (InitialSupply sup : list) {
@@ -82,7 +87,10 @@ void InitialSupply::exec(QJsonObject *character, QJsonArray *inventory)
         character->insert(key, tmp);
     } else if (type == addItem) {
         Common::addItem(inventory, key);
-        if (key == ":/json/o_inv_hilda_trinket.json") {
+    } else if (type == addPerks) {
+        Common::addPerks(character, key);
+        if (characterName == "希尔达") {
+            Common::addItem(inventory, ":/json/o_inv_hilda_trinket.json");
             QJsonArray arr = character->value("recipesConsumsOpened").toArray();
             arr.append("hilda_trinket");
             character->insert("recipesConsumsOpened", arr);
@@ -92,25 +100,14 @@ void InitialSupply::exec(QJsonObject *character, QJsonArray *inventory)
 
 void Common::addBuff(QJsonObject *character, QString key, double value) {
     QJsonArray arr = character->value("buffs").toArray();
-    if (value) {
-        arr.append("o_temp_incr_atr");
-        arr.append(-1);
-        arr.append(1);
-        arr.append("player");
-        arr.append(key);
-        arr.append(value);
-        arr.append(-4);
-        arr.append(0);
-    } else {
-        arr.append(key);
-        arr.append(-1);
-        arr.append(1);
-        arr.append("player");
-        arr.append(-4);
-        arr.append(-4);
-        arr.append(-4);
-        arr.append(0);
-    }
+    arr.append("o_temp_incr_atr");
+    arr.append(-1);
+    arr.append(1);
+    arr.append("player");
+    arr.append(key);
+    arr.append(value);
+    arr.append(-4);
+    arr.append(0);
     character->insert("buffs", arr);
 }
 
@@ -119,6 +116,15 @@ void Common::addItem(QJsonArray *array, const QString &json)
     QByteArray origData = fastRead(json);
     QJsonArray tmp = QJsonDocument::fromJson(origData).array();
     array->append(tmp);
+}
+
+void Common::addPerks(QJsonObject *character, QString key)
+{
+    QJsonArray arr = character->value("perksList").toArray();
+    if (!arr.contains(key)) {
+        arr.append(key);
+    }
+    character->insert("perksList", arr);
 }
 
 QList<InitialSupply> Common::getInitialSupplies()
@@ -162,13 +168,12 @@ CharacterData Common::getCharacter(const QString &fileName)
 #ifndef QT_NO_DEBUG
     if (QFile::exists(filePath + ".bak")) {
         filePath += ".bak";
-        qDebug()<< "使用备份存档";
     }
 #endif
     QByteArray jsonStr = decodeFile(filePath);
-    result.origData = jsonStr;
     QJsonDocument doc = QJsonDocument::fromJson(jsonStr);
-    QJsonObject root = doc.object();
+    result.origData = doc.object();
+    QJsonObject root = result.origData;
     result.character = root.value("characterDataMap").toObject();
     result.statsTimeLevel = result.character.value("statsTimeLevel").toDouble();
     result.nameKey = result.character.value("nameKey").toString();

@@ -13,7 +13,7 @@ struct CharacterData{
     QString icon;
     QString nameKey;
     QString fileName;
-    QByteArray origData;
+    QJsonObject origData;
     QJsonObject character;
     QJsonArray inventory;
     QString index;
@@ -24,14 +24,17 @@ struct InitialSupply{
     enum InitialSupplyTpye{
         addItem = 0,
         addBuff,
-        addAttribute
+        addAttribute,
+        addPerks
     };
     InitialSupply() = default;
     InitialSupply(QString n, QString d, int p, QString k):nameKey(n),description(d),point(p),key(k),type(addItem){}
+    InitialSupply(QString n, QString d, int p, QString k, InitialSupplyTpye t, QString c):nameKey(n),description(d),point(p),key(k),type(t),characterName(c){}
     InitialSupply(QString n, QString d, int p, QString k, double v):nameKey(n),description(d),point(p),key(k),value(v),type(addBuff){}
     InitialSupply(QString n, QString d, int p, QString k, double v, InitialSupplyTpye t):nameKey(n),description(d),point(p),key(k),value(v),type(t){}
     InitialSupplyTpye type;
     QString nameKey;
+    QString characterName;
     QString description;
     int point;
     QString key;
@@ -54,7 +57,7 @@ public:
     static CharacterData getCharacter(const QString &fileName);
     static void addBuff(QJsonObject *character, QString key, double value);
     static void addItem(QJsonArray *array, const QString &json);
-
+    static void addPerks(QJsonObject *character, QString key);
 private:
     static QByteArray decodeFile(const QString &fileName);
     static void encodeFile(const QByteArray &jsonStr, const QString &fileName);

@@ -20,7 +20,7 @@ private slots:
     void on_pushButton_clicked();
     void on_pushButton_2_clicked();
     void on_tableWidget_itemSelectionChanged();
-    void on_comboBox_currentIndexChanged(int);
+    void on_comboBox_currentTextChanged(const QString &arg1);
     void updateMsg(QString msg, QString note);
 
 private:

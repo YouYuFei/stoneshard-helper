@@ -12,20 +12,25 @@ MainWindow::MainWindow(QWidget *parent)
 #ifndef QT_NO_DEBUG
     m_pointMax += 90;
     //仅调试用
-    CharacterData character = Common::getCharacter("character_1/save_1/data.sav");
+    CharacterData character = Common::getCharacter("character_2/exitsave_1/data.sav");
     for (int i=0; i<character.inventory.size(); i++) {
         QJsonArray item = character.inventory.at(i).toArray();
         QJsonObject itemInfo = item.at(1).toObject();
-        if (itemInfo.keys().contains("is_fire")) {
-            // qDebug()<< item;
+        if (itemInfo.value("idName") == "tinker") {
+            qDebug()<< item;
         }
+        qDebug()<<itemInfo.value("charge");
     }
-    for (QString key : character.character.keys()) {
-        if (key != "buffs") {
-            continue;
-        }
-        // qDebug()<< key << character.character.value(key);
-    }
+    // for (QString key : character.character.keys()) {
+    //     if (key != "Books_Read") {
+    //         continue;
+    //     }
+    //     qDebug()<< key << character.character.value(key);
+    // }
+    // QJsonObject root = character.origData;
+    // QJsonDocument newDoc(root);
+    // QByteArray newJson = newDoc.toJson(QJsonDocument::Indented);
+    // Common::fastWrite("save_2.json",newJson);
 #endif
     init();
 }
@@ -82,6 +87,7 @@ void MainWindow::init()
         ui->tableWidget->setItem(i, 1, new QTableWidgetItem(sup.description));
         ui->tableWidget->setItem(i, 2, new QTableWidgetItem(QString::number(sup.point)));
     }
+    on_comboBox_currentTextChanged(ui->comboBox->currentText());
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -97,7 +103,9 @@ void MainWindow::on_pushButton_clicked()
         QVariant itemData = QVariant::fromValue(data);
         item->setData(itemData);
         if (data.statsTimeLevel > 1) {
+#ifdef QT_NO_DEBUG
             item->setEnabled(false);
+#endif
             item->setToolTip("只对新存档开放");
         } else {
             hasNewSave = true;
@@ -143,12 +151,25 @@ void MainWindow::on_tableWidget_itemSelectionChanged()
     }
 }
 
-void MainWindow::on_comboBox_currentIndexChanged(int)
+void MainWindow::on_comboBox_currentTextChanged(const QString &arg1)
 {
+    QModelIndex modelIndex = ui->comboBox->model()->index(ui->comboBox->currentIndex(),0);
+    CharacterData data = ui->comboBox->model()->itemData(modelIndex).value(Qt::UserRole + 1).value<CharacterData>();
     for (int i=0; i<ui->tableWidget->rowCount(); i++) {
-        ui->tableWidget->item(i,0)->setSelected(false);
-        ui->tableWidget->item(i,1)->setSelected(false);
-        ui->tableWidget->item(i,2)->setSelected(false);
+        QTableWidgetItem *item0 = ui->tableWidget->item(i,0);
+        QTableWidgetItem *item1 = ui->tableWidget->item(i,1);
+        QTableWidgetItem *item2 = ui->tableWidget->item(i,2);
+        item0->setSelected(false);
+        item1->setSelected(false);
+        item2->setSelected(false);
+        InitialSupply sup = item0->data(Qt::UserRole + 1).value<InitialSupply>();
+        Qt::ItemFlags flags = item0->flags() | Qt::ItemIsEnabled;
+        if (arg1.isEmpty() || data.nameKey == sup.characterName ) {
+            flags = item0->flags() & ~Qt::ItemIsEnabled;
+        }
+        item0->setFlags(flags);
+        item1->setFlags(flags);
+        item2->setFlags(flags);
     }
 }
 
@@ -157,3 +178,5 @@ void MainWindow::updateMsg(QString msg, QString note)
     ui->statusbar->showMessage(msg);
     ui->statusbar->setToolTip(note);
 }
+
+
