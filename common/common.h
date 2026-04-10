@@ -8,6 +8,11 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QDebug>
+#include <QDir>
+#include <QCryptographicHash>
+#include <QStandardPaths>
+#include <QTimer>
+#include <QDateTime>
 
 struct CharacterData{
     QString icon;
@@ -28,10 +33,10 @@ struct InitialSupply{
         addPerks
     };
     InitialSupply() = default;
-    InitialSupply(QString n, QString d, int p, QString k):nameKey(n),description(d),point(p),key(k),type(addItem){}
-    InitialSupply(QString n, QString d, int p, QString k, InitialSupplyTpye t, QString c):nameKey(n),description(d),point(p),key(k),type(t),characterName(c){}
-    InitialSupply(QString n, QString d, int p, QString k, double v):nameKey(n),description(d),point(p),key(k),value(v),type(addBuff){}
-    InitialSupply(QString n, QString d, int p, QString k, double v, InitialSupplyTpye t):nameKey(n),description(d),point(p),key(k),value(v),type(t){}
+    InitialSupply(QString n, QString d, int p, QString k, int f):nameKey(n),description(d),point(p),key(k),filterType(f),type(addItem){}
+    InitialSupply(QString n, QString d, int p, QString k, int f, InitialSupplyTpye t, QString c):nameKey(n),description(d),point(p),key(k),filterType(f),type(t),characterName(c){}
+    InitialSupply(QString n, QString d, int p, QString k, int f, double v):nameKey(n),description(d),point(p),key(k),filterType(f),value(v),type(addBuff){}
+    InitialSupply(QString n, QString d, int p, QString k, int f, double v, InitialSupplyTpye t):nameKey(n),description(d),point(p),key(k),filterType(f),value(v),type(t){}
     InitialSupplyTpye type;
     QString nameKey;
     QString characterName;
@@ -41,6 +46,7 @@ struct InitialSupply{
     double value;
     void exec(QJsonObject *character, QJsonArray *array);
     bool isSelected = false;
+    int filterType;
 };
 Q_DECLARE_METATYPE(InitialSupply)
 class Common : public QObject
@@ -49,15 +55,19 @@ class Common : public QObject
 
 public:
     Common(){}
+    static QString getSaveDir();
     static QList<CharacterData> getNewCharacterList();
     static QList<InitialSupply> getInitialSupplies();
     static void setInitialSupplies(const CharacterData &characterData, QList<InitialSupply> list);
     static QByteArray fastRead(const QString &fileName);
     static void fastWrite(const QString &fileName, QByteArray data);
+    static void fastCopy(const QString &oldName, const QString &newName);
     static CharacterData getCharacter(const QString &fileName);
     static void addBuff(QJsonObject *character, QString key, double value);
     static void addItem(QJsonArray *array, const QString &json);
     static void addPerks(QJsonObject *character, QString key);
+    static void automaticBackup();
+    static QStringList filterType;
 private:
     static QByteArray decodeFile(const QString &fileName);
     static void encodeFile(const QByteArray &jsonStr, const QString &fileName);
@@ -65,6 +75,7 @@ private:
     static QString m_homeDir;
     static QMap<QString, QString> m_nameKeyMap;
     static QList<InitialSupply> m_initialSupplies;
+    static QTimer *m_automaticBackup;
 };
 
 #endif // STONESHARDCOMMON_H

@@ -22,11 +22,15 @@ private slots:
     void on_tableWidget_itemSelectionChanged();
     void on_comboBox_currentTextChanged(const QString &arg1);
     void updateMsg(QString msg, QString note);
+    void on_comboBox_2_currentTextChanged(const QString &arg1);
+    void on_horizontalSlider_valueChanged(int value);
 
 private:
+    void on_getSpeedTimerTimeout();
     Ui::MainWindow *ui;
     void init();
     Updater *m_updater = nullptr;
     int m_pointMax = 10;
+    QTimer *m_getSpeedTimer = nullptr;
 };
 #endif // MAINWINDOW_H

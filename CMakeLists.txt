@@ -22,6 +22,8 @@ set(PROJECT_SOURCES
         common/common.cpp
         common/updater.h
         common/updater.cpp
+        common/speed.h
+        common/speed.cpp
         data/rcdata.qrc
 )
 
@@ -51,7 +53,7 @@ else()
     else()
         add_executable(${PROJECT_NAME}
             ${PROJECT_SOURCES}
-            ${WINDOWS_RESOURCES}  # 只在Windows时包含
+            ${WINDOWS_RESOURCES} # 只在Windows时包含
         )
     endif()
 endif()
