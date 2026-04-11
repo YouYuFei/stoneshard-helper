@@ -104,7 +104,11 @@ void MainWindow::init()
         item->setWhatsThis(Common::filterType.at(sup.filterType));
         ui->tableWidget->setItem(i, 0, item);
         ui->tableWidget->setItem(i, 1, new QTableWidgetItem(sup.description));
-        ui->tableWidget->setItem(i, 2, new QTableWidgetItem(QString::number(sup.point)));
+        QString point = QString::number(sup.point);
+        if (!point.startsWith('-')) {
+            point = "+" + point;
+        }
+        ui->tableWidget->setItem(i, 2, new QTableWidgetItem(point));
     }
     on_comboBox_currentTextChanged(ui->comboBox->currentText());
     QList<QWidget*> widgets = this->findChildren<QWidget*>();
