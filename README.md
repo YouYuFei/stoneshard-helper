@@ -1,8 +1,11 @@
 # 紫色晶石（stoneshard）小助手
 
 游戏链接：[https://store.steampowered.com/app/625960/](https://store.steampowered.com/app/625960/)
+
 存档加密方法参考自：[https://github.com/denbkh/stoneshard-save-editor](https://github.com/denbkh/stoneshard-save-editor)
+
 全局加速方法参考自：[https://github.com/game1024/OpenSpeedy](https://github.com/game1024/OpenSpeedy)
+
 作者主页：[https://space.bilibili.com/107071365](https://space.bilibili.com/107071365)
 
 
