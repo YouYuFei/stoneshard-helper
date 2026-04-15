@@ -4,6 +4,8 @@
 #include "speed.h"
 #include <QStandardItemModel>
 #include <QDesktopServices>
+#include <QMouseEvent>
+#include <QApplication>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -11,27 +13,29 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 #ifndef QT_NO_DEBUG
-    m_pointMax += 90;
     //仅调试用
-    CharacterData character = Common::getCharacter("character_9/save_1/data.sav");
+    m_pointMax += 90;
+    // CharacterData character = Common::getCharacter("character_1/save_1/data.sav");
     // for (int i=0; i<character.inventory.size(); i++) {
     //     QJsonArray item = character.inventory.at(i).toArray();
     //     QJsonObject itemInfo = item.at(1).toObject();
-    //     if (itemInfo.value("idName") == "tinker") {
-    //         qDebug()<< item;
-    //     }
+    //     // if (itemInfo.value("idName") == "tinker") {
+    //     //     qDebug()<< item;
+    //     // }
     //     qDebug()<<itemInfo;
     // }
-    for (QString key : character.character.keys()) {
-        if (key != "Books_Read") {
-            // continue;
-        }
-        // qDebug()<< key << character.character.value(key);
-    }
+    // for (QString key : character.character.keys()) {
+    //     if (key != "buffs") {
+    //         continue;
+    //     }
+    //     qDebug()<< key << character.character.value(key);
+    // }
     // QJsonObject root = character.origData;
     // QJsonDocument newDoc(root);
     // QByteArray newJson = newDoc.toJson(QJsonDocument::Indented);
     // Common::fastWrite("save_2.json",newJson);
+#else
+    centerWindow();
 #endif
     init();
 }
@@ -44,44 +48,69 @@ MainWindow::~MainWindow()
 
 void MainWindow::init()
 {
+    setWindowTitle("stoneshard helper");
+    setWindowIcon(QIcon(":/icon/icon.png"));
+    setWindowFlags(Qt::FramelessWindowHint);
+    setAttribute(Qt::WA_TranslucentBackground);
+    QWidget* titleBar = new QWidget(this);
+    titleBar->setObjectName("titleBar");
+    titleBar->installEventFilter(this);
+    titleBar->setFixedHeight(40);
+    QHBoxLayout *layout = new QHBoxLayout(titleBar);
+    QLabel *titleIcon = new QLabel(this);
+    titleIcon->setPixmap(windowIcon().pixmap(26,26));
+    layout->addWidget(titleIcon);
+    layout->addWidget(new QLabel(this->windowTitle()));
+    layout->addStretch();
+    QPushButton *bilibili = new QPushButton(QIcon(":/icon/bilibili.png"),"",this);
+    QPushButton *github = new QPushButton(QIcon(":/icon/github.png"),"",this);
+    QPushButton *support = new QPushButton(QIcon(":/icon/support.png"),"",this);
+    QPushButton *min = new QPushButton(getInvertedIcon(QStyle::SP_TitleBarMinButton),"",this);
+    QPushButton *max = new QPushButton(getInvertedIcon(QStyle::SP_TitleBarMaxButton),"",this);
+    QPushButton *close = new QPushButton(getInvertedIcon(QStyle::SP_TitleBarCloseButton),"",this);
+    for (auto btn : {bilibili,github,support}) {
+        btn->setFixedSize(26,26);
+        layout->addWidget(btn);
+    }
+    QFrame *verticalLine = new QFrame;
+    verticalLine->setFrameShape(QFrame::VLine);
+    verticalLine->setMinimumHeight(26);
+    layout->addWidget(verticalLine);
+    for (auto btn : {min,max,close}) {
+        btn->setFixedSize(26,26);
+        layout->addWidget(btn);
+    }
+    setMenuWidget(titleBar);
+    connect(bilibili,&QPushButton::clicked,this,[&]{QDesktopServices::openUrl(QUrl("https://space.bilibili.com/107071365"));});
+    connect(github,&QPushButton::clicked,this,[&]{QDesktopServices::openUrl(QUrl("https://github.com/YouYuFei/stoneshard-helper"));});
+    connect(support,&QPushButton::clicked,this,[&]{QDesktopServices::openUrl(QUrl("https://yyf.luxe/stoneshard-helper/support"));});
+    connect(min, &QPushButton::clicked, this, &MainWindow::showMinimized);
+    connect(max, &QPushButton::clicked, [=] {
+        if (isMaximized()) {
+            max->setIcon(getInvertedIcon(QStyle::SP_TitleBarMaxButton));
+            showNormal();
+        } else {
+            max->setIcon(getInvertedIcon(QStyle::SP_TitleBarNormalButton));
+            showMaximized();
+        }
+    });
+    connect(close, &QPushButton::clicked, qApp, &QApplication::quit);
     QString saveDir = Common::getSaveDir();
     ui->lineEdit->setText(saveDir);
     ui->lineEdit->setReadOnly(true);
     if (QFile::exists(saveDir)) {
-        ui->lineEdit->setStyleSheet("QLineEdit { background-color:rgba(0, 255, 0, 0.1);}");
         ui->label_3->setText("已启用（关闭程序会失效）");
         Common::automaticBackup();
-    } else {
-        ui->lineEdit->setStyleSheet("QLineEdit { background-color:rgba(255, 0, 0, 0.1);}");
     }
-    ui->label_7->setPixmap(QPixmap(":/icon/icon.png").scaled(60,80,Qt::KeepAspectRatio));
     m_getSpeedTimer = new QTimer(this);
-    m_getSpeedTimer->setInterval(1000);
+    m_getSpeedTimer->setInterval(DEFAULT_TIMEOUT);
     connect(m_getSpeedTimer,&QTimer::timeout,this,&MainWindow::on_getSpeedTimerTimeout);
     m_updater = new Updater(this);
     connect(m_updater,&Updater::updateMsg,this,&MainWindow::updateMsg);
-    setWindowTitle("stoneshard helper");
-    setWindowIcon(QIcon(":/icon/icon.png"));
-    // setStyleSheet("QFrame {background-color: rgba(255, 255, 255, 0.5);} QMainWindow{background-color: rgb(28, 28, 52);}");
     ui->pushButton_2->setEnabled(false);
     ui->statusbar->showMessage("程序完全免费，无论从任何渠道购买，速速申请退款");
-    ui->statusbar->setStyleSheet("QStatusBar{ color: red; font-weight: bold;}");
     ui->label->setText("剩余点数:"+QString::number(m_pointMax));
     ui->comboBox_2->addItems(Common::filterType);
-    on_pushButton_clicked();
-    QAction *act;
-    act = menuBar()->addAction("",[]{
-        QDesktopServices::openUrl(QUrl("https://space.bilibili.com/107071365"));
-    });
-    act->setIcon(QIcon(":/icon/bilibili.png"));
-    act = menuBar()->addAction("",[]{
-        QDesktopServices::openUrl(QUrl("https://github.com/YouYuFei/stoneshard-helper"));
-    });
-    act->setIcon(QIcon(":/icon/github.png"));
-    act = menuBar()->addAction("",[]{
-        QDesktopServices::openUrl(QUrl("https://yyf.luxe/stoneshard-helper/support"));
-    });
-    act->setIcon(QIcon(":/icon/support.png"));
     QList<InitialSupply> list = Common::getInitialSupplies();
     QStringList headers = {"名称", "描述", "点数"};
     ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -101,7 +130,7 @@ void MainWindow::init()
         QTableWidgetItem *item = new QTableWidgetItem(sup.nameKey);
         QVariant itemData = QVariant::fromValue(sup);
         item->setData(Qt::UserRole + 1, itemData);
-        item->setWhatsThis(Common::filterType.at(sup.filterType));
+        item->setWhatsThis(sup.filterType);
         ui->tableWidget->setItem(i, 0, item);
         ui->tableWidget->setItem(i, 1, new QTableWidgetItem(sup.description));
         QString point = QString::number(sup.point);
@@ -110,12 +139,35 @@ void MainWindow::init()
         }
         ui->tableWidget->setItem(i, 2, new QTableWidgetItem(point));
     }
+    on_pushButton_clicked();
     on_comboBox_currentTextChanged(ui->comboBox->currentText());
+    m_getSpeedTimer->start();
     QList<QWidget*> widgets = this->findChildren<QWidget*>();
     foreach(QWidget* widget, widgets) {
         widget->setFocusPolicy(Qt::NoFocus);
     }
-    m_getSpeedTimer->start();
+    setStyleSheet("QMainWindow{background-color:transparent;}"
+                  "*{color:#fff;}"
+                  "*:disabled{color:#888;}");
+    ui->centralwidget->setStyleSheet("*{background-color:rgb(28,28,52);}"
+                                     "QFrame{border-image: url(:/ui/Small_border.png) 24 stretch;border-width:24px;padding:-14px;}"
+                                     "QLabel,QLineEdit{border:none;padding:0px;}"
+                                     "QComboBox,QPushButton{padding: 5px 20px;background-color:rgb(50,50,90);}"
+                                     "QPushButton:hover,QComboBox:hover{background-color:rgb(100,100,150);}"
+                                     "QComboBox QAbstractItemView{border:none;}");
+    ui->comboBox->view()->window()->setStyleSheet("background-color:rgb(28,28,52);border:17px solid;");
+    ui->comboBox_2->view()->window()->setStyleSheet("background-color:rgb(28,28,52);border:17px solid;");
+    verticalLine->setStyleSheet("background-color:#fff;margin:2px;");
+    titleBar->setStyleSheet("QWidget{background-color:rgb(28,28,52);border-top-left-radius: 15px;border-top-right-radius:15px;}"
+                            "QPushButton{padding: 5px 20px;background-color:rgb(50,50,90);border-radius:5px}"
+                            "QPushButton:hover{background-color:rgb(100,100,150);}");
+    ui->statusbar->setStyleSheet("QStatusBar{background-color:rgb(28,28,52);color:red;font-weight:bold;border-bottom-left-radius: 15px;border-bottom-right-radius: 15px;}");
+    ui->tableWidget->setStyleSheet("QTableWidget{background-color:rgb(28,28,52);border-width:20px;}"
+                                   "QHeaderView{border:none;padding:0px;}"
+                                   "QTableWidget::item:hover{background-color:rgb(50,50,90);}"
+                                   "QTableWidget::item:selected{background-color:rgb(100,100,150);}");
+    ui->label_7->setStyleSheet("border:5px solid;");
+    ui->statusbar->setFixedHeight(40);
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -183,7 +235,11 @@ void MainWindow::on_comboBox_currentTextChanged(const QString &arg1)
 {
     QModelIndex modelIndex = ui->comboBox->model()->index(ui->comboBox->currentIndex(),0);
     CharacterData data = ui->comboBox->model()->itemData(modelIndex).value(Qt::UserRole + 1).value<CharacterData>();
-    ui->label_7->setPixmap(QPixmap(data.icon).scaled(60,80,Qt::KeepAspectRatio));
+    QString iconUrl = data.icon;
+    if (iconUrl.isEmpty()) {
+        iconUrl = ":/portrait/32px-Frontpage_POIs.png";
+    }
+    ui->label_7->setPixmap(QPixmap(iconUrl).scaled(60,80));
     for (int i=0; i<ui->tableWidget->rowCount(); i++) {
         QTableWidgetItem *item0 = ui->tableWidget->item(i,0);
         QTableWidgetItem *item1 = ui->tableWidget->item(i,1);
@@ -241,5 +297,42 @@ void MainWindow::on_horizontalSlider_valueChanged(int value)
         m_getSpeedTimer->start();
         ui->horizontalSlider->setEnabled(false);
     }
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *e)
+{
+    if (obj->objectName() == "titleBar") {
+            if (e->type() == QEvent::MouseButtonPress) {
+                QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(e);
+                if (mouseEvent->button() == Qt::LeftButton) {
+                    m_isDragging = true;
+                    m_dragStartPosition = mouseEvent->globalPos() - frameGeometry().topLeft();
+                }
+            }
+            else if (e->type() == QEvent::MouseMove && m_isDragging) {
+                QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(e);
+                if (mouseEvent->buttons() & Qt::LeftButton) {
+                    move(mouseEvent->globalPos() - m_dragStartPosition);
+                }
+            }
+            else if (e->type() == QEvent::MouseButtonRelease) {
+                m_isDragging = false;
+            }
+        }
+    return obj->event(e);
+}
+
+QIcon MainWindow::getInvertedIcon(QStyle::StandardPixmap standardPixmap) {
+    QIcon icon = style()->standardIcon(standardPixmap);
+    QPixmap pixmap = icon.pixmap(16, 16);
+    QImage image = pixmap.toImage();
+    image.invertPixels(QImage::InvertRgb);
+    return QIcon(QPixmap::fromImage(image));
+}
+
+void MainWindow::centerWindow()
+{
+    QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
+    move(screenGeometry.center() - rect().center());
 }
 

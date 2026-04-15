@@ -52,6 +52,7 @@ void Updater::onUpdateCheckFinished()
     }
     QUrl versionUrl("https://yyf.luxe/stoneshard-helper/update/stoneshard-helper.exe");
     m_reply = m_networkManager->get(QNetworkRequest(versionUrl));
+    connect(m_reply, &QNetworkReply::downloadProgress, this, &Updater::downloadProgress);
     connect(m_reply, &QNetworkReply::finished, this, &Updater::downloadFile);
 }
 
@@ -72,4 +73,10 @@ void Updater::downloadFile()
     QFile::copy(":/update.bat",batName);
     QProcess::startDetached("cmd.exe", {"/c", batName});
     emit updateMsg("更新完成，重启后生效", "");
+}
+
+void Updater::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
+{
+    QString process = QString::number(double(bytesReceived * 100.0 / bytesTotal), 'f', 1);
+    emit updateMsg("检测到新版本，自动更新中，鼠标悬停此处查看更新内容  " + process + "%", "");
 }

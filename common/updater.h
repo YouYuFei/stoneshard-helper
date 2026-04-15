@@ -13,6 +13,7 @@ public:
 private:
     void onUpdateCheckFinished();
     void downloadFile();
+    void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     QNetworkAccessManager *m_networkManager = nullptr;
     QNetworkReply *m_reply = nullptr;
     QString m_md5;

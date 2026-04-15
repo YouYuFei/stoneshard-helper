@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QStyle>
 #include "updater.h"
 
 QT_BEGIN_NAMESPACE
@@ -26,11 +27,16 @@ private slots:
     void on_horizontalSlider_valueChanged(int value);
 
 private:
+    bool eventFilter(QObject * obj, QEvent *e);
     void on_getSpeedTimerTimeout();
-    Ui::MainWindow *ui;
     void init();
+    QIcon getInvertedIcon(QStyle::StandardPixmap standardPixmap);
+    void centerWindow();
+    Ui::MainWindow *ui;
     Updater *m_updater = nullptr;
     int m_pointMax = 10;
     QTimer *m_getSpeedTimer = nullptr;
+    bool m_isDragging;
+    QPoint m_dragStartPosition;
 };
 #endif // MAINWINDOW_H

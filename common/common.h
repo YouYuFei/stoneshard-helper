@@ -14,6 +14,8 @@
 #include <QTimer>
 #include <QDateTime>
 
+#define DEFAULT_TIMEOUT 3000
+
 struct CharacterData{
     QString icon;
     QString nameKey;
@@ -21,6 +23,7 @@ struct CharacterData{
     QJsonObject origData;
     QJsonObject character;
     QJsonArray inventory;
+    QJsonArray skills;
     QString index;
     double statsTimeLevel;
 };
@@ -30,13 +33,14 @@ struct InitialSupply{
         addItem = 0,
         addBuff,
         addAttribute,
-        addPerks
+        addPerks,
+        addSkill
     };
     InitialSupply() = default;
-    InitialSupply(QString n, QString d, int p, QString k, int f):nameKey(n),description(d),point(p),key(k),filterType(f),type(addItem){}
-    InitialSupply(QString n, QString d, int p, QString k, int f, InitialSupplyTpye t, QString c):nameKey(n),description(d),point(p),key(k),filterType(f),type(t),characterName(c){}
-    InitialSupply(QString n, QString d, int p, QString k, int f, double v):nameKey(n),description(d),point(p),key(k),filterType(f),value(v),type(addBuff){}
-    InitialSupply(QString n, QString d, int p, QString k, int f, double v, InitialSupplyTpye t):nameKey(n),description(d),point(p),key(k),filterType(f),value(v),type(t){}
+    InitialSupply(QString n, QString d, int p, QString k, QString f):nameKey(n),description(d),point(p),key(k),filterType(f),type(addItem){}
+    InitialSupply(QString n, QString d, int p, QString k, QString f, InitialSupplyTpye t, QString c):nameKey(n),description(d),point(p),key(k),filterType(f),type(t),characterName(c){}
+    InitialSupply(QString n, QString d, int p, QString k, QString f, double v):nameKey(n),description(d),point(p),key(k),filterType(f),value(v),type(addBuff){}
+    InitialSupply(QString n, QString d, int p, QString k, QString f, double v, InitialSupplyTpye t):nameKey(n),description(d),point(p),key(k),filterType(f),value(v),type(t){}
     InitialSupplyTpye type;
     QString nameKey;
     QString characterName;
@@ -44,9 +48,9 @@ struct InitialSupply{
     int point;
     QString key;
     double value;
-    void exec(QJsonObject *character, QJsonArray *array);
+    void exec(QJsonObject *character, QJsonArray *array, QJsonArray *skills);
     bool isSelected = false;
-    int filterType;
+    QString filterType;
 };
 Q_DECLARE_METATYPE(InitialSupply)
 class Common : public QObject
@@ -66,6 +70,7 @@ public:
     static void addBuff(QJsonObject *character, QString key, double value);
     static void addItem(QJsonArray *array, const QString &json);
     static void addPerks(QJsonObject *character, QString key);
+    static void addSkill(QJsonArray *array, const QString &key);
     static void automaticBackup();
     static QStringList filterType;
 private:

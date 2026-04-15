@@ -19,7 +19,9 @@
         <file>portrait/100px-Jonna.png</file>
         <file>portrait/100px-Leosthenes.png</file>
         <file>portrait/100px-Mahir.png</file>
+        <file>portrait/32px-Frontpage_POIs.png</file>
         <file>speedpatch/speedpatch64.dll</file>
         <file>speedpatch/bridge64.exe</file>
+        <file>ui/Small_border.png</file>
     </qresource>
 </RCC>
