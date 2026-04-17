@@ -35,6 +35,8 @@ private:
     Ui::MainWindow *ui;
     Updater *m_updater = nullptr;
     int m_pointMax = 10;
+    int m_achievements = 0;
+    int m_playTime = 0;
     QTimer *m_getSpeedTimer = nullptr;
     bool m_isDragging;
     QPoint m_dragStartPosition;

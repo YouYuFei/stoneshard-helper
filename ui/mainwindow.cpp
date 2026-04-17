@@ -2,6 +2,7 @@
 #include "./ui_mainwindow.h"
 #include "common.h"
 #include "speed.h"
+#include "steam.h"
 #include <QStandardItemModel>
 #include <QDesktopServices>
 #include <QMouseEvent>
@@ -14,7 +15,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 #ifndef QT_NO_DEBUG
     //仅调试用
-    m_pointMax += 90;
     // CharacterData character = Common::getCharacter("character_1/save_1/data.sav");
     // for (int i=0; i<character.inventory.size(); i++) {
     //     QJsonArray item = character.inventory.at(i).toArray();
@@ -95,6 +95,17 @@ void MainWindow::init()
         }
     });
     connect(close, &QPushButton::clicked, qApp, &QApplication::quit);
+    m_achievements = Steam::getUnlockedAchievements();
+    m_playTime = Steam::getPlaytime();
+    int pointAchievements = m_achievements / 2;
+    int pointPlayTime = m_playTime / 60 / 100;
+    QString pointFrom = QString("总点数:%1 (基础:%2 + 成就加成:%3 + 游玩时间加成:%4)")
+            .arg(m_pointMax + pointAchievements + pointPlayTime)
+            .arg(m_pointMax)
+            .arg(pointAchievements)
+            .arg(pointPlayTime);
+    ui->label_9->setText(pointFrom);
+    ui->label_9->setToolTip(QString("steam已解锁%1个成就(每解锁2个成就加1配置点)，steam游玩时长%2分钟(每游玩100小时加1配置点)").arg(m_achievements).arg(m_playTime));
     QString saveDir = Common::getSaveDir();
     ui->lineEdit->setText(saveDir);
     ui->lineEdit->setReadOnly(true);
@@ -109,7 +120,7 @@ void MainWindow::init()
     connect(m_updater,&Updater::updateMsg,this,&MainWindow::updateMsg);
     ui->pushButton_2->setEnabled(false);
     ui->statusbar->showMessage("程序完全免费，无论从任何渠道购买，速速申请退款");
-    ui->label->setText("剩余点数:"+QString::number(m_pointMax));
+    ui->label->setText("可用配置点:"+QString::number(m_pointMax + pointAchievements + pointPlayTime));
     ui->comboBox_2->addItems(Common::filterType);
     QList<InitialSupply> list = Common::getInitialSupplies();
     QStringList headers = {"名称", "描述", "点数"};
@@ -167,6 +178,7 @@ void MainWindow::init()
                                    "QTableWidget::item:hover{background-color:rgb(50,50,90);}"
                                    "QTableWidget::item:selected{background-color:rgb(100,100,150);}");
     ui->label_7->setStyleSheet("border:5px solid;");
+    ui->label->setStyleSheet("font-weight:bold;");
     ui->statusbar->setFixedHeight(40);
 }
 
@@ -222,8 +234,10 @@ void MainWindow::on_tableWidget_itemSelectionChanged()
             usePoint -= ui->tableWidget->item(i,2)->text().toInt();
         }
     }
-    int remaining = m_pointMax-usePoint;
-    ui->label->setText("配置点:"+QString::number(remaining));
+    int pointAchievements = m_achievements / 2;
+    int pointPlayTime = m_playTime / 60 / 100;
+    int remaining = m_pointMax + pointAchievements + pointPlayTime - usePoint;
+    ui->label->setText("可用配置点:"+QString::number(remaining));
     if (remaining < 0) {
         ui->pushButton_2->setEnabled(false);
     } else {

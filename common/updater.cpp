@@ -38,7 +38,6 @@ void Updater::onUpdateCheckFinished()
     if (md5 == m_md5) {
         return;
     }
-    emit updateMsg("检测到新版本，自动更新中，鼠标悬停此处查看更新内容", notes);
     qDebug()<<"检查更新完成" << md5 << m_md5;
     QString path = QCoreApplication::applicationDirPath();
     while (path.endsWith("/")) {
@@ -72,11 +71,11 @@ void Updater::downloadFile()
     QFile::remove(batName);
     QFile::copy(":/update.bat",batName);
     QProcess::startDetached("cmd.exe", {"/c", batName});
-    emit updateMsg("更新完成，重启后生效", "");
+    emit updateMsg("更新完成，重新运行程序生效", "");
 }
 
 void Updater::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
     QString process = QString::number(double(bytesReceived * 100.0 / bytesTotal), 'f', 1);
-    emit updateMsg("检测到新版本，自动更新中，鼠标悬停此处查看更新内容  " + process + "%", "");
+    emit updateMsg("检测到新版本，自动更新中  " + process + "%", "");
 }
