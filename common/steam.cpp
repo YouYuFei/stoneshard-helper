@@ -4,15 +4,23 @@
 #include <QRegularExpression>
 
 const quint64 STEAMID64_BASE = 76561197960265728ULL;
-QString Steam::m_userDataPath = Steam::findSteamUserData();
+QStringList Steam::m_steamUrlList = {"C:/Program Files (x86)/Steam/","D:/Program Files (x86)/Steam/","E:/Program Files (x86)/Steam/","F:/Program Files (x86)/Steam/",
+                              "C:/Steam/","D:/Steam/","E:/Steam/","F:/Steam/"};
+QString Steam::m_userDataPath;
 
 int Steam::getUnlockedAchievements()
 {
+    if (m_userDataPath.isEmpty()) {
+        m_userDataPath = Steam::findSteamUserData();
+    }
     if (m_userDataPath.isEmpty()) {
         return 0;
     }
     QString jsonName = m_userDataPath + "/config/librarycache/achievement_progress.json";
     QByteArray jsonData = Common::fastRead(jsonName);
+    if (jsonData.isEmpty()) {
+        qDebug()<< "成就数据获取失败："<< jsonName;
+    }
     QJsonDocument doc = QJsonDocument::fromJson(jsonData);
     QJsonObject root = doc.object();
     QJsonArray apps = root.value("mapCache").toArray();
@@ -29,10 +37,16 @@ int Steam::getUnlockedAchievements()
 int Steam::getPlaytime()
 {
     if (m_userDataPath.isEmpty()) {
+        m_userDataPath = Steam::findSteamUserData();
+    }
+    if (m_userDataPath.isEmpty()) {
         return 0;
     }
     QString vdfName = m_userDataPath + "/config/localconfig.vdf";
     QByteArray vdfData = Common::fastRead(vdfName);
+    if (vdfData.isEmpty()) {
+        qDebug()<< "时长数据获取失败："<< vdfName;
+    }
     QByteArrayList lines = vdfData.split('\n');
     bool findStineShard = false;
     for (int i = 0;i< lines.size();i++) {
@@ -44,8 +58,8 @@ int Steam::getPlaytime()
             if (lines.at(i) == "\t\t\t\t\t}") {
                 return 0;
             }
-            QByteArray line = lines.at(i);
-            if (line.startsWith("\t\t\t\t\t\t\"Playtime\"")) {
+            QByteArray line = lines.at(i).toLower();
+            if (line.startsWith("\t\t\t\t\t\t\"playtime\"")) {
                 line = line.mid(19);
                 line.chop(1);
                 return line.toInt();
@@ -66,34 +80,53 @@ QString Steam::findSteamUserData()
     }
 #endif
     if (steamPath.isEmpty() || !QDir(steamPath).exists()) {
+        qDebug()<< "注册表获取主目录失败:" << steamPath;
+        for (QString url : m_steamUrlList) {
+            if (QDir(url).exists()) {
+                steamPath = url;
+                qDebug()<< "猜测目录成功："<< steamPath;
+                break;
+            }
+        }
+    }
+    if (steamPath.isEmpty() || !QDir(steamPath).exists()) {
         qDebug()<< "获取主目录失败:" << steamPath;
-        return "";
     }
     if (!steamPath.endsWith("/")) {
         steamPath.append("/");
     }
     QString userDataPath = steamPath + "userdata/";
-    QStringList dirs = QDir(userDataPath).entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    QString userData = userDataPath;
-    QString dirName = getLoginId(steamPath);
-    if (!dirs.contains(dirName)) {
-        userData.append(dirs.first());
-    } else {
-       userData.append(dirName);
+    QString userData = userDataPath + getLoginId(steamPath);
+    qDebug()<< "最近登录的账号：" << userData;
+    QString jsonName = userData + "/config/librarycache/achievement_progress.json";
+    if (QFile::exists(jsonName)) {
+        return userData;
     }
-    return userData;
+    qDebug()<< "最近登录的账号不存在成就数据";
+    QStringList dirs = QDir(userDataPath).entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    for (QString dir : dirs) {
+        userData = userDataPath + dir;
+        jsonName = userData +  "/config/librarycache/achievement_progress.json";
+        if (QFile::exists(jsonName)) {
+            qDebug()<< "采用首个存在成就数据的账号:" << userData;
+            return userData;
+        }
+    }
+    qDebug()<< "未找到任何存在成就数据的账号";
+    return "";
 }
 
 QString Steam::getLoginId(const QString &path)
 {
     QByteArray loginData = Common::fastRead(path + "config/loginusers.vdf");
     if (loginData.isEmpty()) {
+        qDebug()<< "登录数据不存在";
         return "";
     }
     QString longId;
     QRegularExpression re(
-                R"REGEX("(\d+)"\s*\{[^}]*?"MostRecent"\s+"1")REGEX",
-                QRegularExpression::DotMatchesEverythingOption | QRegularExpression::InvertedGreedinessOption
+                R"REGEX("(\d+)"\s*\{[^}]*?"mostrecent"\s+"1")REGEX",
+                QRegularExpression::DotMatchesEverythingOption | QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption
                 );
     QRegularExpressionMatch match = re.match(loginData);
     if (match.hasMatch()) {

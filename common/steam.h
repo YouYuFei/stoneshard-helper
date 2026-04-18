@@ -15,6 +15,7 @@ private:
     static QString findSteamUserData();
     static QString getLoginId(const QString &path);
     static QString m_userDataPath;
+    static QStringList m_steamUrlList;
 };
 
 #endif // STEAM_H

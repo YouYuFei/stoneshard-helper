@@ -38,7 +38,6 @@ void Updater::onUpdateCheckFinished()
     if (md5 == m_md5) {
         return;
     }
-    qDebug()<<"检查更新完成" << md5 << m_md5;
     QString path = QCoreApplication::applicationDirPath();
     while (path.endsWith("/")) {
         path.chop(1);

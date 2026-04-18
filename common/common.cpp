@@ -326,7 +326,9 @@ QByteArray Common::calcMd5(const QString& jsonString, const QString& saveFilePat
 QByteArray Common::fastRead(const QString &fileName)
 {
     QFile file(fileName);
-    file.open(QIODevice::ReadOnly);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug()<< "文件读取失败：" << file.errorString() << fileName;
+    }
     QByteArray data = file.readAll();
     file.close();
     return data;
