@@ -15,7 +15,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 #ifndef QT_NO_DEBUG
     //仅调试用
-    // CharacterData character = Common::getCharacter("character_1/save_1/data.sav");
+    m_pointMax += 90;
+    // CharacterData character = Common::getCharacter("character_3/save_1/data.sav");
     // for (int i=0; i<character.inventory.size(); i++) {
     //     QJsonArray item = character.inventory.at(i).toArray();
     //     QJsonObject itemInfo = item.at(1).toObject();

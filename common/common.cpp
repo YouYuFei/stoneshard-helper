@@ -50,6 +50,9 @@ QList<InitialSupply> Common::m_initialSupplies = {
     InitialSupply("气息感召2","距离加成+20%",-2,"Bonus_Range","战斗",20),
     InitialSupply("气息感召3","距离加成+30%",-3,"Bonus_Range","战斗",30),
     InitialSupply("目光如炬","最大视野+3",-1,"VSN","战斗",3),
+    InitialSupply("精准命中1","准度+10%",-1,"Hit_Chance","战斗",10),
+    InitialSupply("精准命中2","准度+20%",-2,"Hit_Chance","战斗",20),
+    InitialSupply("精准命中3","准度+30%",-3,"Hit_Chance","战斗",30),
     //生存
     InitialSupply("身强体壮1","HP最大值+10",-1,"max_hp","生存",10),
     InitialSupply("身强体壮2","HP最大值+20",-2,"max_hp","生存",20),
